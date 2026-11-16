@@ -1,0 +1,1 @@
+{"id":"d48a0185","timestamp":"2026-11-16T12:32:29.008289800Z","ruleId":"R1","ruleName":"Brute Force","ip":"203.0.113.88","username":"admin","severity":"HIGH","mitreTag":"T1110","mitreLabel":"Brute Force","why":"Same IP tried 5 passwords in 60s.","defend":"Lock account after 5 failures; add MFA; use CAPTCHA.","status":"OPEN"}

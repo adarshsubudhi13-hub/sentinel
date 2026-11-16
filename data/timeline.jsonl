@@ -1,0 +1,6 @@
+{"id":"f26e0a05","timestamp":"2026-11-16T12:32:28.870122300Z","type":"LOGIN_FAIL","actor":"203.0.113.88","detail":"admin failed"}
+{"id":"7a8a9bb0","timestamp":"2026-11-16T12:32:28.964462300Z","type":"LOGIN_FAIL","actor":"203.0.113.88","detail":"admin failed"}
+{"id":"90862934","timestamp":"2026-11-16T12:32:28.979119700Z","type":"LOGIN_FAIL","actor":"203.0.113.88","detail":"admin failed"}
+{"id":"077ee9e0","timestamp":"2026-11-16T12:32:28.994684400Z","type":"LOGIN_FAIL","actor":"203.0.113.88","detail":"admin failed"}
+{"id":"c5109ace","timestamp":"2026-11-16T12:32:29.008289800Z","type":"LOGIN_FAIL","actor":"203.0.113.88","detail":"admin failed"}
+{"id":"1d2eb200","timestamp":"2026-11-16T12:32:29.008289800Z","type":"ALERT","actor":"203.0.113.88","detail":"Brute Force — HIGH"}

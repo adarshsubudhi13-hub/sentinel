@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel — Cyberattack Simulation & Detection Lab</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <span class="logo-icon">🛡️</span>
+            <div>
+                <h1>SENTINEL SOC</h1>
+                <div style="font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.1em; font-weight: 700;">AUTONOMOUS CYBER DEFENSE LAB</div>
+            </div>
+            <div id="target-status-pill" style="margin-left: 16px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; border-radius: 20px; border: 1px solid #ef4444; background: rgba(239, 68, 68, 0.15); color: #ef4444; display: inline-flex; align-items: center; gap: 6px;">
+                ● DemoBank: Checking...
+            </div>
+        </div>
+        <nav class="nav-links">
+            <button class="nav-btn active" onclick="switchPage('dashboard')"><span>📊</span> Dashboard</button>
+            <button class="nav-btn" onclick="switchPage('mitre')"><span>🎯</span> MITRE Matrix</button>
+            <button class="nav-btn" onclick="switchPage('simulator')"><span>⚡</span> Simulator & Playground</button>
+            <button class="nav-btn" onclick="switchPage('alerts')"><span>🚨</span> Alerts & Timeline</button>
+            <button class="nav-btn" onclick="switchPage('ips')"><span>🌐</span> IP Monitor</button>
+            <button class="nav-btn" onclick="switchPage('settings')"><span>⚙️</span> Settings</button>
+
+            <!-- Theme Picker -->
+            <select id="theme-selector" class="theme-selector" onchange="changeTheme(this.value)" title="Choose Theme">
+                <option value="cyber">Cyber Neon (Default)</option>
+                <option value="matrix">Matrix Terminal</option>
+                <option value="space">Deep Obsidian</option>
+            </select>
+
+            <!-- Audio Sound FX Toggle -->
+            <button id="sound-btn" class="sound-toggle-btn active" onclick="toggleSound()" title="Toggle WebAudio Sound Effects">
+                🔊 Audio: ON
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- 1. DASHBOARD PAGE -->
+        <section id="page-dashboard" class="page active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <h2>Security Operations Dashboard</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Real-time telemetry, live risk assessment & active defense telemetry</p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="triggerDemo()">🚀 Run 90s Demo Story</button>
+                    <button class="btn btn-warning" onclick="resetLab()">🔄 Reset Lab</button>
+                    <button class="btn btn-secondary" onclick="downloadReport('txt')">📄 Report (TXT)</button>
+                    <button class="btn btn-secondary" onclick="downloadReport('html')">🌐 Report (HTML)</button>
+                </div>
+            </div>
+
+            <div class="grid-4">
+                <div class="card">
+                    <div class="card-title">
+                        <span>System Risk Score</span>
+                        <span id="dash-risk-badge" class="badge NORMAL">NORMAL</span>
+                    </div>
+                    <div class="card-value" id="dash-risk">0</div>
+                    <canvas id="risk-sparkline" class="sparkline-canvas"></canvas>
+                </div>
+                <div class="card">
+                    <div class="card-title">
+                        <span>Detection Scorecard</span>
+                        <span style="font-size: 0.75rem; color: var(--accent-cyan);">A–F Grading</span>
+                    </div>
+                    <div class="card-value" id="dash-grade" style="color: var(--accent-cyan);">N/A</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 10px;">
+                        Accuracy: <span id="dash-accuracy" style="font-weight: 700; color: var(--text-primary);">100%</span> | 
+                        TTD: <span id="dash-ttd" style="font-weight: 700; color: var(--text-primary);">0ms</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Total Authentication Events</div>
+                    <div class="card-value" id="dash-attempts">0</div>
+                    <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 8px;">
+                        <span id="dash-successes" style="color: var(--accent-green); font-weight: bold;">0</span> passed &bull; 
+                        <span id="dash-failures" style="color: var(--accent-red); font-weight: bold;">0</span> failed
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">Active Security Alerts</div>
+                    <div class="card-value" id="dash-alerts">0</div>
+                    <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 8px;">
+                        MITRE ATT&CK Mapped: <strong style="color: var(--accent-cyan);">100%</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">
+                        <span>Active Autonomous Defense</span>
+                        <span id="dash-defense-badge" class="badge" style="background: rgba(148, 163, 184, 0.2); color: var(--text-secondary);">INACTIVE</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 16px 0; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <div style="font-size: 1.1rem; font-weight: 700;">Protection Mode: <span id="dash-defense-status" style="color: var(--text-secondary);">OFF</span></div>
+                            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">Automated containment of malicious entities</div>
+                        </div>
+                        <button id="defense-toggle-btn" class="btn btn-success" onclick="toggleDefense()">Enable Defense Mode</button>
+                    </div>
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+                        🛡️ <strong>Policy:</strong> When enabled, any host reaching <strong>Risk ≥ 75</strong> is instantaneously blacklisted and associated targets receive a 60-second brute-force lockout.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Interactive Incident Replay</div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 6px;">
+                        Re-simulate stored log events to benchmark detection latency.
+                    </p>
+                    <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="startReplay(1)">1x Replay</button>
+                        <button class="btn btn-secondary" onclick="startReplay(5)">5x Speed</button>
+                        <button class="btn btn-secondary" onclick="startReplay(10)">10x Fast</button>
+                    </div>
+                    <div id="replay-indicator" style="margin-top: 14px; font-size: 0.82rem; color: var(--accent-cyan); display: none; padding: 8px; border-radius: 6px; background: rgba(0, 242, 254, 0.1);">
+                        Replaying timeline events...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Defense Comparison Benchmark Card -->
+            <div class="card" id="defense-comparison-card" style="margin-top: 20px;">
+                <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Active Defense Impact Assessment (Defense ON vs OFF)</span>
+                    <span class="badge" style="background: rgba(0, 242, 254, 0.15); color: var(--accent-cyan);">EVALUATOR METRIC</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 14px;">
+                    <div style="padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">BREACH CONTAINMENT</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-green);" id="cmp-mitigated">100% Contained</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Unauthorized credential floods severed before compromise</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">MEAN TIME TO CONTAIN</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--accent-cyan);" id="cmp-mttc">&lt; 1.0s</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Autonomous REST block command to DemoBank :9090</div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">POLICY ENFORCEMENT</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: #fff;" id="cmp-status">Active Enforcement</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Host HTTP 403 &amp; User Lockout 423 active</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. MITRE ATT&CK MATRIX PAGE -->
+        <section id="page-mitre" class="page">
+            <div style="margin-bottom: 20px;">
+                <h2>MITRE ATT&CK Matrix Navigator</h2>
+                <p style="font-size: 0.85rem; color: var(--text-secondary);">Live mapping of detected identity threats against enterprise MITRE techniques</p>
+            </div>
+
+            <div class="mitre-grid">
+                <div class="mitre-cell" id="mitre-t1110">
+                    <div class="mitre-cell-id">T1110</div>
+                    <div class="mitre-cell-name">Brute Force</div>
+                    <div class="mitre-cell-count">Detections: <span id="mcount-t1110" style="font-weight: bold;">0</span></div>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">Targeting single identity with systematic guesses.</p>
+                </div>
+                <div class="mitre-cell" id="mitre-t1110-003">
+                    <div class="mitre-cell-id">T1110.003</div>
+                    <div class="mitre-cell-name">Password Spraying</div>
+                    <div class="mitre-cell-count">Detections: <span id="mcount-t1110-003" style="font-weight: bold;">0</span></div>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">Iterating single password across multiple identities.</p>
+                </div>
+                <div class="mitre-cell" id="mitre-t1110-004">
+                    <div class="mitre-cell-id">T1110.004</div>
+                    <div class="mitre-cell-name">Credential Stuffing</div>
+                    <div class="mitre-cell-count">Detections: <span id="mcount-t1110-004" style="font-weight: bold;">0</span></div>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">Utilizing compromised IP lists for distributed access.</p>
+                </div>
+                <div class="mitre-cell" id="mitre-t1078">
+                    <div class="mitre-cell-id">T1078</div>
+                    <div class="mitre-cell-name">Valid Accounts (Compromise)</div>
+                    <div class="mitre-cell-count">Detections: <span id="mcount-t1078" style="font-weight: bold;">0</span></div>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">Successful authentication following suspicious failures.</p>
+                </div>
+                <div class="mitre-cell" id="mitre-t1499">
+                    <div class="mitre-cell-id">T1499</div>
+                    <div class="mitre-cell-name">Endpoint Denial of Service</div>
+                    <div class="mitre-cell-count">Detections: <span id="mcount-t1499" style="font-weight: bold;">0</span></div>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">Flooding authentication service with high request rates.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. SIMULATOR & PLAYGROUND PAGE -->
+        <section id="page-simulator" class="page">
+            <h2>Cyberattack Simulator & Login Playground</h2>
+            <div id="sim-target-warning" style="display: none; margin-top: 14px; padding: 14px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 8px; color: #ef4444; font-size: 0.88rem;">
+                ⚠️ <strong>DemoBank Unreachable:</strong> DemoBank target server is currently offline at <code>http://127.0.0.1:9090</code>. Start DemoBank first to enable real attack simulations.
+            </div>
+            <div class="grid-2" style="margin-top: 20px;">
+                <div class="card">
+                    <div class="card-title">Launch Attack Simulation</div>
+                    <div class="form-group" style="margin-top: 14px;">
+                        <label>Attack Scenario</label>
+                        <select id="sim-scenario">
+                            <option value="BRUTE_FORCE">Brute Force Attack (T1110)</option>
+                            <option value="SPRAY">Credential Spraying (T1110.003)</option>
+                            <option value="DISTRIBUTED">Distributed Attack (T1110.004)</option>
+                            <option value="COMPROMISE">Compromise Sequence (T1078)</option>
+                            <option value="FLOOD">Request Flood (T1499)</option>
+                            <option value="MIXED">Mixed Chaos Scenario</option>
+                            <option value="NORMAL">Normal Benign Traffic</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Intensity (Events/sec)</label>
+                        <select id="sim-eps">
+                            <option value="2">Low (2 eps)</option>
+                            <option value="5" selected>Medium (5 eps)</option>
+                            <option value="15">High (15 eps)</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button id="sim-start-btn" class="btn btn-danger" onclick="startSimulation()">⚡ Start Attack</button>
+                        <button class="btn btn-secondary" onclick="stopSimulation()">⏹️ Stop</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Challenge Mode: Defend Under Pressure</div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 10px 0;">
+                        Stop the attack by manually blocking malicious IPs before 3 accounts are compromised!
+                    </p>
+                    <div id="challenge-status" style="margin-bottom: 12px; font-weight: bold; color: var(--accent-cyan);">
+                        Status: Inactive
+                    </div>
+                    <button class="btn btn-primary" onclick="toggleChallenge()">🎮 Start Challenge</button>
+                    <div id="challenge-stats" style="margin-top: 14px; font-size: 0.85rem; display: none;">
+                        <p>Compromises: <span id="ch-comp" style="color: var(--accent-red); font-weight: bold;">0</span> / 3</p>
+                        <p>Score: <span id="ch-score" style="font-weight: bold; color: var(--accent-cyan);">100</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Playground -->
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-title">Manual Authentication Playground (Target: DemoBank :9090)</div>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">
+                    Sends real authentication requests to DemoBank. Attempts appear in <code>demobank/data/auth.log</code> and are ingested by Sentinel.
+                </p>
+                <div style="max-width: 520px; margin-top: 15px;">
+                    <div style="margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border: 1px dashed var(--border-color); border-radius: 8px;">
+                        <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">REGISTERED DEMOBANK CREDENTIALS (CLICK TO AUTOFILL):</div>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" onclick="fillPlayground('adarsh', 'Adarsh@123')">adarsh &bull; Adarsh@123</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" onclick="fillPlayground('alice', 'Wonder@2024')">alice &bull; Wonder@2024</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" onclick="fillPlayground('bob', 'Builder#77')">bob &bull; Builder#77</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" onclick="fillPlayground('charlie', 'Choc0late!')">charlie &bull; Choc0late!</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" onclick="fillPlayground('admin', 'Adm1n$ecure')">admin &bull; Adm1n$ecure</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 4px 8px;" onclick="fillPlayground('guest', 'guest123')">guest &bull; guest123</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="play-user" placeholder="e.g. alice">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="play-pass" placeholder="Enter password">
+                    </div>
+                    <button class="btn btn-primary" onclick="submitPlaygroundLogin()">🔐 Test Authentication Against DemoBank</button>
+                    <div id="play-result" style="margin-top: 12px; font-size: 0.9rem;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. ALERTS & TIMELINE PAGE -->
+        <section id="page-alerts" class="page">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2>Alerts & Real-time Security Timeline</h2>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="exportAlertsCsv()">📥 Export CSV</button>
+                    <!-- Filter alerts by severity -->
+                    <select id="alert-filter" onchange="filterAlerts(this.value)" style="width: auto; padding: 6px 12px;">
+                        <option value="ALL">All Severities</option>
+                        <option value="CRITICAL">Critical Only</option>
+                        <option value="HIGH">High Only</option>
+                        <option value="MEDIUM">Medium Only</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-title">Detection Alerts (With Actionable Defenses)</div>
+                    <div class="table-container">
+                        <table id="alerts-table">
+                            <thead>
+                                <tr>
+                                    <th>Severity</th>
+                                    <th>Rule</th>
+                                    <th>MITRE</th>
+                                    <th>Target / IP</th>
+                                    <th>Why & Defend</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alerts-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Live SOC Event Timeline</div>
+                    <ul class="timeline-list" id="timeline-list"></ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. IP MONITOR PAGE -->
+        <section id="page-ips" class="page">
+            <h2>IP Threat Registry & Firewall Control</h2>
+            <div class="card" style="margin-top: 20px;">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>IP Address</th>
+                                <th>Failures</th>
+                                <th>Distinct Users</th>
+                                <th>Risk Score</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ips-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. SETTINGS PAGE -->
+        <section id="page-settings" class="page">
+            <h2>Detection & System Thresholds</h2>
+            <div class="card" style="max-width: 600px; margin-top: 20px;">
+                <div class="form-group">
+                    <label>Brute Force Threshold (Failures in 60s)</label>
+                    <input type="number" value="5" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Credential Spray Threshold (Distinct Accounts)</label>
+                    <input type="number" value="3" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Request Flood Threshold (Requests in 60s)</label>
+                    <input type="number" value="30" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Defense Auto-Block Threshold (Risk Score)</label>
+                    <input type="number" value="75" readonly>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">Thresholds are governed by Defaults.java to ensure zero magic numbers.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
